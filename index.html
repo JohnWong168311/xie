@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>鞋仓 · 鞋业进销存管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 12px 12px 20px 12px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 主容器 */
+        .app {
+            max-width: 550px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 16px;
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #0f2b3d, #1c4e6f);
+            padding: 20px 20px 16px 20px;
+            color: white;
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header p {
+            font-size: 0.75rem;
+            opacity: 0.85;
+            margin-top: 6px;
+        }
+
+        /* Tab 导航 */
+        .tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #eef2f8;
+            padding: 0 8px;
+            gap: 4px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 14px 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #5c6f87;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-radius: 24px 24px 0 0;
+        }
+        .tab-btn.active {
+            color: #1c4e6f;
+            background: #f0f6fe;
+            font-weight: 600;
+            box-shadow: inset 0 -2px 0 #1c4e6f;
+        }
+
+        /* 内容区域 */
+        .panel {
+            display: none;
+            padding: 20px 16px;
+            background: #ffffff;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .panel.active-panel {
+            display: flex;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: #fefefe;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02), 0 0 0 1px #edf2f7;
+            overflow: hidden;
+            padding: 16px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e2a3e;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #2c7da0;
+            padding-left: 12px;
+        }
+        .btn {
+            background: #2c7da0;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #2c3e50;
+        }
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 0.7rem;
+        }
+        .btn-danger {
+            background: #b91c1c;
+        }
+        .btn-success {
+            background: #2b6e3c;
+        }
+        .btn-warning {
+            background: #d97706;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            background: #f1f5f9;
+            border-radius: 44px;
+            display: flex;
+            align-items: center;
+            padding: 8px 18px;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .search-box input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        /* 商品网格/列表 */
+        .goods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+        }
+        .goods-item {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #eef2f9;
+            padding: 12px;
+            transition: 0.1s;
+        }
+        .goods-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .goods-info {
+            flex: 2;
+        }
+        .goods-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .goods-pinyin {
+            font-size: 0.7rem;
+            color: #6c86a3;
+            background: #f0f4fa;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 30px;
+            margin-top: 6px;
+        }
+        .goods-stock {
+            font-size: 0.85rem;
+            color: #2c7da0;
+            font-weight: 500;
+        }
+        .goods-price {
+            font-weight: 700;
+            color: #d45a2b;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        /* 表单 */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #334155;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 28px;
+            border: 1px solid #e2e8f0;
+            background: #fafcff;
+            font-size: 0.9rem;
+        }
+        .inline-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .modal-mask {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal-mask.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-container {
+            background: white;
+            width: 85%;
+            max-width: 360px;
+            border-radius: 32px;
+            padding: 24px 20px;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .record-item {
+            border-bottom: 1px solid #f0f2f5;
+            padding: 12px 0;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .badge-in {
+            background: #e0f2e9;
+            color: #2b6e3c;
+            padding: 2px 10px;
+            border-radius: 30px;
+        }
+        .badge-out {
+            background: #ffe6e5;
+            color: #b91c1c;
+        }
+        .toast-msg {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f2937;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            z-index: 1100;
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <div class="header">
+        <h1>👟 鞋仓 · 进销存</h1>
+        <p>库存管理 · 进货入库 · 销售出库 · 流水追踪</p>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="stock">📦 库存</button>
+        <button class="tab-btn" data-tab="purchase">📥 进货</button>
+        <button class="tab-btn" data-tab="sell">💰 销售</button>
+        <button class="tab-btn" data-tab="records">📋 流水</button>
+    </div>
+
+    <!-- 库存管理面板 -->
+    <div class="panel active-panel" id="stockPanel">
+        <div class="card">
+            <div class="card-title">
+                <span>👟 鞋款库存</span>
+                <button class="btn btn-small" id="openAddShoeBtn">+ 新增鞋款</button>
+            </div>
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="stockSearch" placeholder="搜索 品名/拼音码 例如 'NK' 或 '空军'">
+            </div>
+            <div class="goods-list" id="stockList">
+                <!-- 动态库存列表 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 进货面板 -->
+    <div class="panel" id="purchasePanel">
+        <div class="card">
+            <div class="card-title">📥 进货入库 (增加库存)</div>
+            <div class="form-group">
+                <label>选择鞋款</label>
+                <select id="purchaseProductId"></select>
+            </div>
+            <div class="form-group">
+                <label>进货数量</label>
+                <input type="number" id="purchaseQty" value="1" min="1" step="1">
+            </div>
+            <div class="form-group">
+                <label>进货单价 (可选，仅记录)</label>
+                <input type="number" id="purchasePrice" placeholder="仅用于参考" step="0.01">
+            </div>
+            <button class="btn" id="doPurchaseBtn">确认进货入库</button>
+        </div>
+    </div>
+
+    <!-- 销售面板 -->
+    <div class="panel" id="sellPanel">
+        <div class="card">
+            <div class="card-title">💰 销售出库 (减少库存)</div>
+            <div class="form-group">
+                <label>选择鞋款</label>
+                <select id="sellProductId"></select>
+            </div>
+            <div class="form-group">
+                <label>销售数量</label>
+                <input type="number" id="sellQty" value="1" min="1" step="1">
+            </div>
+            <div class="form-group">
+                <label>售价 (自动取商品售价，可修改)</label>
+                <input type="number" id="sellPrice" step="0.01" placeholder="售价">
+            </div>
+            <button class="btn btn-success" id="doSellBtn">确认销售出库</button>
+        </div>
+    </div>
+
+    <!-- 流水记录面板 -->
+    <div class="panel" id="recordsPanel">
+        <div class="card">
+            <div class="card-title">📋 进销存流水</div>
+            <div id="recordsList" style="max-height: 500px; overflow-y: auto;">
+                <!-- 动态记录 -->
+            </div>
+            <button class="btn-outline btn-small" id="clearRecordsBtn" style="margin-top:12px; width:100%;">清空所有流水</button>
+        </div>
+    </div>
+</div>
+
+<!-- 商品新增/编辑模态框 -->
+<div id="shoeModal" class="modal-mask">
+    <div class="modal-container">
+        <h3 id="modalTitle">新增鞋款</h3>
+        <div class="form-group">
+            <label>鞋款名称 (含品牌/型号/尺码)</label>
+            <input type="text" id="shoeName" placeholder="例: Nike Air Force 1 白 42">
+        </div>
+        <div class="form-group">
+            <label>拼音码 (快捷检索)</label>
+            <input type="text" id="shoePinyin" placeholder="例: NKAF1B42 或自动">
+        </div>
+        <div class="form-group">
+            <label>销售单价 (元)</label>
+            <input type="number" id="shoePrice" step="0.01" placeholder="售价">
+        </div>
+        <div class="form-group">
+            <label>初始库存</label>
+            <input type="number" id="shoeStock" value="0" step="1">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn" id="modalConfirmBtn">保存</button>
+            <button class="btn-outline" id="modalCancelBtn">取消</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 数据模型 ----------
+    let shoes = [];          // { id, name, pinyinCode, price, stock }
+    let transactions = [];   // { id, productId, type: 'in'/'out', quantity, unitPrice, totalAmount, time, note }
+
+    // ---------- 辅助函数 ----------
+    function showToast(msg, duration=1500) {
+        let exist = document.querySelector('.toast-msg');
+        if(exist) exist.remove();
+        let div = document.createElement('div');
+        div.className = 'toast-msg';
+        div.innerText = msg;
+        document.body.appendChild(div);
+        setTimeout(() => { div.style.opacity='0'; setTimeout(()=>div.remove(),300); }, duration);
+    }
+
+    // 保存至localStorage
+    function saveData() {
+        localStorage.setItem('shoes_data', JSON.stringify(shoes));
+        localStorage.setItem('transactions_data', JSON.stringify(transactions));
+    }
+
+    function loadData() {
+        const storedShoes = localStorage.getItem('shoes_data');
+        if(storedShoes) {
+            try { shoes = JSON.parse(storedShoes); } catch(e){ shoes = []; }
+        }
+        if(!shoes || shoes.length===0) {
+            // 初始化演示数据
+            shoes = [
+                { id: 1, name: "Nike Air Max 90 白红 42", pinyinCode: "NKAM90BH42", price: 599, stock: 12 },
+                { id: 2, name: "Adidas Yeezy 350 黑魂 43", pinyinCode: "ADYZ350H43", price: 1899, stock: 5 },
+                { id: 3, name: "李宁 赤兔6 跑步鞋 41", pinyinCode: "LNCT6P41", price: 349, stock: 20 },
+                { id: 4, name: "安踏 C37+ 2.0 休闲鞋 42.5", pinyinCode: "ATC37P42", price: 269, stock: 8 },
+                { id: 5, name: "回力 经典帆布鞋 白色 39", pinyinCode: "HLJFB39", price: 79, stock: 30 }
+            ];
+        }
+        const storedTrans = localStorage.getItem('transactions_data');
+        if(storedTrans) {
+            try { transactions = JSON.parse(storedTrans); } catch(e){ transactions = []; }
+        } else { transactions = []; }
+    }
+
+    // 生成拼音码简易版 (取每个汉字拼音首字母大写, 保留英文数字) 供自动填充
+    function generatePinyinCode(str) {
+        // 简单转换: 提取字母数字，中文转为首字母 (简化库，仅做示例)
+        let pinyin = str.replace(/[\u4e00-\u9fa5]/g, (match) => {
+            // 只能映射常用，这里简单映射第一个字符; 实际可用库但为了轻量，手动只做演示映射几个字:
+            const map = { '耐':'N','克':'K','阿':'A','迪':'D','达':'D','斯':'S','李':'L','宁':'N','安':'A','踏':'T','回':'H','力':'L','经':'J','典':'D','帆':'F','布':'B','鞋':'X','跑':'P','步':'B','休':'X','闲':'X','黑':'H','红':'R','白':'B','蓝':'L','黄':'Y' };
+            return map[match] || match.charAt(0).toUpperCase();
+        });
+        pinyin = pinyin.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        return pinyin.slice(0, 20);
+    }
+
+    // 渲染库存表格 (带搜索)
+    let currentStockKeyword = '';
+    function renderStock() {
+        const container = document.getElementById('stockList');
+        if(!container) return;
+        let filtered = shoes.filter(s => 
+            s.name.toLowerCase().includes(currentStockKeyword.toLowerCase()) || 
+            s.pinyinCode.toLowerCase().includes(currentStockKeyword.toLowerCase())
+        );
+        if(filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding: 32px; color:#8ba0bc;">暂无鞋款，请点击右上角新增</div>';
+            return;
+        }
+        let html = '';
+        filtered.forEach(shoe => {
+            html += `
+                <div class="goods-item" data-id="${shoe.id}">
+                    <div class="goods-row">
+                        <div class="goods-info">
+                            <div class="goods-name">${escapeHtml(shoe.name)}</div>
+                            <div class="goods-pinyin">📟 ${shoe.pinyinCode}</div>
+                        </div>
+                        <div class="goods-stock">📦 库存: ${shoe.stock}</div>
+                        <div class="goods-price">¥${shoe.price}</div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-small btn-outline edit-shoe" data-id="${shoe.id}">✏️ 编辑</button>
+                        <button class="btn-small btn-danger del-shoe" data-id="${shoe.id}">🗑️ 删除</button>
+                        <button class="btn-small btn-success adjust-in" data-id="${shoe.id}">➕ 进货</button>
+                        <button class="btn-small btn-warning adjust-out" data-id="${shoe.id}">➖ 销售</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        // 绑定库存卡片上的操作按钮
+        document.querySelectorAll('.edit-shoe').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); openEditShoe(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.del-shoe').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); deleteShoe(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.adjust-in').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); quickPurchase(parseInt(btn.dataset.id)); }));
+        document.querySelectorAll('.adjust-out').forEach(btn => btn.addEventListener('click', (e) => { e.stopPropagation(); quickSell(parseInt(btn.dataset.id)); }));
+    }
+
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // 渲染下拉框 (进货/销售选择)
+    function renderSelectors() {
+        const purchaseSelect = document.getElementById('purchaseProductId');
+        const sellSelect = document.getElementById('sellProductId');
+        if(!purchaseSelect) return;
+        let options = '<option value="">-- 选择鞋款 --</option>';
+        shoes.forEach(s => {
+            options += `<option value="${s.id}">${s.name} (库存:${s.stock}  ¥${s.price})</option>`;
+        });
+        purchaseSelect.innerHTML = options;
+        sellSelect.innerHTML = options;
+        // 默认选中第一个有效商品
+        if(shoes.length>0) { purchaseSelect.value = shoes[0].id; sellSelect.value = shoes[0].id; }
+        // 销售时实时填充售价
+        const sellPriceInput = document.getElementById('sellPrice');
+        if(sellSelect && sellPriceInput) {
+            const updateSellPrice = () => {
+                const selectedId = parseInt(sellSelect.value);
+                const shoe = shoes.find(s => s.id === selectedId);
+                if(shoe) sellPriceInput.value = shoe.price;
+                else sellPriceInput.value = '';
+            };
+            sellSelect.addEventListener('change', updateSellPrice);
+            updateSellPrice();
+        }
+    }
+
+    // 进货逻辑
+    function purchaseProduct(productId, quantity, unitPriceNote) {
+        const shoe = shoes.find(s => s.id === productId);
+        if(!shoe) { showToast("鞋款不存在"); return false; }
+        if(quantity <= 0) { showToast("数量必须大于0"); return false; }
+        shoe.stock += quantity;
+        // 记录流水
+        const trans = {
+            id: Date.now(),
+            productId: shoe.id,
+            productName: shoe.name,
+            type: 'in',
+            quantity: quantity,
+            unitPrice: unitPriceNote || null,
+            totalAmount: unitPriceNote ? (unitPriceNote * quantity) : null,
+            time: new Date().toLocaleString(),
+            note: `进货入库 +${quantity}`
+        };
+        transactions.unshift(trans);
+        saveData();
+        renderStock();
+        renderSelectors();
+        renderRecords();
+        showToast(`✅ 进货成功: ${shoe.name} +${quantity}`, 1200);
+        return true;
+    }
+
+    // 销售逻辑
+    function sellProduct(productId, quantity, salePrice) {
+        const shoe = shoes.find(s => s.id === productId);
+        if(!shoe) { showToast("鞋款不存在"); return false; }
+        if(quantity <= 0) { showToast("数量必须大于0"); return false; }
+        if(shoe.stock < quantity) { showToast(`库存不足！当前库存仅 ${shoe.stock}`); return false; }
+        const finalPrice = parseFloat(salePrice);
+        if(isNaN(finalPrice) || finalPrice <= 0) { showToast("请输入有效的销售单价"); return false; }
+        shoe.stock -= quantity;
+        const total = finalPrice * quantity;
+        const trans = {
+            id: Date.now(),
+            productId: shoe.id,
+            productName: shoe.name,
+            type: 'out',
+            quantity: quantity,
+            unitPrice: finalPrice,
+            totalAmount: total,
+            time: new Date().toLocaleString(),
+            note: `销售出库 -${quantity} 单价¥${finalPrice}`
+        };
+        transactions.unshift(trans);
+        saveData();
+        renderStock();
+        renderSelectors();
+        renderRecords();
+        showToast(`💰 销售成功: ${shoe.name} x${quantity}  ¥${total}`, 1500);
+        return true;
+    }
+
+    // 渲染流水记录
+    function renderRecords() {
+        const container = document.getElementById('recordsList');
+        if(!container) return;
+        if(transactions.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding: 32px;">暂无进销存记录</div>';
+            return;
+        }
+        let html = '';
+        transactions.slice(0, 100).forEach(t => {
+            const badge = t.type === 'in' ? '<span class="badge-in">📥 进货</span>' : '<span class="badge-out">💰 销售</span>';
+            const amountText = t.type === 'in' ? (t.unitPrice ? `单价:¥${t.unitPrice}` : '') : `单价:¥${t.unitPrice} 总额:¥${t.totalAmount}`;
+            html += `<div class="record-item">
+                        <div><strong>${t.productName}</strong><br><small>${t.time}</small></div>
+                        <div style="text-align:right;">${badge}<br>数量: ${t.quantity}<br>${amountText}</div>
+                    </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // 商品新增/编辑模态框逻辑
+    let currentEditId = null;
+    function openAddShoe() {
+        currentEditId = null;
+        document.getElementById('modalTitle').innerText = '新增鞋款';
+        document.getElementById('shoeName').value = '';
+        document.getElementById('shoePinyin').value = '';
+        document.getElementById('shoePrice').value = '';
+        document.getElementById('shoeStock').value = '0';
+        document.getElementById('shoeModal').classList.add('active');
+    }
+    function openEditShoe(id) {
+        const shoe = shoes.find(s => s.id === id);
+        if(!shoe) return;
+        currentEditId = id;
+        document.getElementById('modalTitle').innerText = '编辑鞋款';
+        document.getElementById('shoeName').value = shoe.name;
+        document.getElementById('shoePinyin').value = shoe.pinyinCode;
+        document.getElementById('shoePrice').value = shoe.price;
+        document.getElementById('shoeStock').value = shoe.stock;
+        document.getElementById('shoeModal').classList.add('active');
+    }
+    function deleteShoe(id) {
+        const shoe = shoes.find(s=>s.id===id);
+        if(!shoe) return;
+        if(confirm(`删除鞋款「${shoe.name}」将同时移除相关流水，确定吗？`)) {
+            shoes = shoes.filter(s=>s.id !== id);
+            transactions = transactions.filter(t => t.productId !== id);
+            saveData();
+            renderStock();
+            renderSelectors();
+            renderRecords();
+            showToast(`已删除 ${shoe.name}`);
+        }
+    }
+    function saveShoeFromModal() {
+        let name = document.getElementById('shoeName').value.trim();
+        let pinyin = document.getElementById('shoePinyin').value.trim();
+        let price = parseFloat(document.getElementById('shoePrice').value);
+        let stock = parseInt(document.getElementById('shoeStock').value);
+        if(!name) { showToast("请输入鞋款名称"); return; }
+        if(isNaN(price) || price <= 0) { showToast("请输入有效单价"); return; }
+        if(isNaN(stock)) stock = 0;
+        if(!pinyin) pinyin = generatePinyinCode(name);
+        pinyin = pinyin.toUpperCase();
+        if(currentEditId === null) {
+            let newId = shoes.length > 0 ? Math.max(...shoes.map(s=>s.id)) + 1 : 1;
+            shoes.push({ id: newId, name, pinyinCode: pinyin, price, stock });
+            showToast(`新增鞋款: ${name}`);
+        } else {
+            const index = shoes.findIndex(s=>s.id === currentEditId);
+            if(index !== -1) {
+                shoes[index] = { ...shoes[index], name, pinyinCode: pinyin, price, stock };
+                showToast(`已修改: ${name}`);
+            } else { showToast("商品不存在"); closeModal(); return; }
+        }
+        saveData();
+        renderStock();
+        renderSelectors();
+        closeModal();
+    }
+    function closeModal() {
+        document.getElementById('shoeModal').classList.remove('active');
+        currentEditId = null;
+    }
+
+    // 快捷进货/销售
+    function quickPurchase(id) {
+        const shoe = shoes.find(s=>s.id===id);
+        if(!shoe) return;
+        let qty = prompt(`进货数量 (当前库存 ${shoe.stock})`, "1");
+        if(qty === null) return;
+        qty = parseInt(qty);
+        if(isNaN(qty) || qty<=0) { showToast("数量无效"); return; }
+        purchaseProduct(id, qty, null);
+    }
+    function quickSell(id) {
+        const shoe = shoes.find(s=>s.id===id);
+        if(!shoe) return;
+        let qty = prompt(`销售数量 (当前库存 ${shoe.stock})`, "1");
+        if(qty === null) return;
+        qty = parseInt(qty);
+        if(isNaN(qty) || qty<=0) { showToast("数量无效"); return; }
+        let sp = prompt(`销售单价 (商品售价 ¥${shoe.price})`, shoe.price);
+        if(sp === null) return;
+        let priceNum = parseFloat(sp);
+        if(isNaN(priceNum) || priceNum<=0) { showToast("单价无效"); return; }
+        sellProduct(id, qty, priceNum);
+    }
+
+    // 清空流水
+    function clearAllRecords() {
+        if(transactions.length === 0) { showToast("无流水记录"); return; }
+        if(confirm("⚠️ 清空所有流水记录，不可恢复，确认吗？")) {
+            transactions = [];
+            saveData();
+            renderRecords();
+            showToast("流水已清空");
+        }
+    }
+
+    // 绑定面板与tab切换
+    function initTabs() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.panel');
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.dataset.tab;
+                tabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                panels.forEach(p => p.classList.remove('active-panel'));
+                if(target === 'stock') document.getElementById('stockPanel').classList.add('active-panel');
+                if(target === 'purchase') document.getElementById('purchasePanel').classList.add('active-panel');
+                if(target === 'sell') document.getElementById('sellPanel').classList.add('active-panel');
+                if(target === 'records') document.getElementById('recordsPanel').classList.add('active-panel');
+                if(target === 'stock') renderStock();
+                if(target === 'purchase') renderSelectors();
+                if(target === 'sell') renderSelectors();
+                if(target === 'records') renderRecords();
+            });
+        });
+    }
+
+    // 主入口
+    function init() {
+        loadData();
+        renderStock();
+        renderSelectors();
+        renderRecords();
+        initTabs();
+        // 搜索输入监听
+        const stockSearch = document.getElementById('stockSearch');
+        if(stockSearch) {
+            stockSearch.addEventListener('input', (e) => {
+                currentStockKeyword = e.target.value;
+                renderStock();
+            });
+        }
+        document.getElementById('openAddShoeBtn')?.addEventListener('click', openAddShoe);
+        document.getElementById('modalConfirmBtn')?.addEventListener('click', saveShoeFromModal);
+        document.getElementById('modalCancelBtn')?.addEventListener('click', closeModal);
+        document.getElementById('doPurchaseBtn')?.addEventListener('click', () => {
+            const pid = parseInt(document.getElementById('purchaseProductId').value);
+            const qty = parseInt(document.getElementById('purchaseQty').value);
+            const priceNote = parseFloat(document.getElementById('purchasePrice').value);
+            if(isNaN(pid)) { showToast("请选择鞋款"); return; }
+            if(isNaN(qty) || qty<=0) { showToast("数量必须大于0"); return; }
+            purchaseProduct(pid, qty, isNaN(priceNote)?null:priceNote);
+            document.getElementById('purchaseQty').value = 1;
+            document.getElementById('purchasePrice').value = '';
+        });
+        document.getElementById('doSellBtn')?.addEventListener('click', () => {
+            const pid = parseInt(document.getElementById('sellProductId').value);
+            const qty = parseInt(document.getElementById('sellQty').value);
+            const salePrice = parseFloat(document.getElementById('sellPrice').value);
+            if(isNaN(pid)) { showToast("请选择鞋款"); return; }
+            if(isNaN(qty) || qty<=0) { showToast("数量必须大于0"); return; }
+            if(isNaN(salePrice) || salePrice<=0) { showToast("请输入有效售价"); return; }
+            sellProduct(pid, qty, salePrice);
+            document.getElementById('sellQty').value = 1;
+        });
+        document.getElementById('clearRecordsBtn')?.addEventListener('click', clearAllRecords);
+        // 防止模态框背景点击关闭
+        const modalBg = document.getElementById('shoeModal');
+        modalBg.addEventListener('click', (e) => { if(e.target === modalBg) closeModal(); });
+    }
+    init();
+</script>
+</body>
+</html>
